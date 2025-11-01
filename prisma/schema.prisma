@@ -1,0 +1,230 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @unique @default(uuid())
+  email    String @unique
+  name     String
+  phone    String
+  password String
+  role     Role
+}
+
+model Admin {
+  id       String    @id @unique @default(uuid())
+  name     String
+  email    String    @unique
+  password String
+  role     ADMINROLE @default(super_admin)
+}
+
+model User1 {
+  id               Int       @id @default(autoincrement())
+  name             String
+  email            String    @unique
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model Patient {
+  id                String        @id @unique @default(uuid())
+  firstName         String
+  lastName          String
+  email             String        @unique
+  phoneNumber       String
+  birthDate         String
+  gender            String
+  idNumber          String
+  permanentLocation Json
+  password          String?
+  createdAt         DateTime      @default(now())
+  role              Role          @default(patient)
+  status            PatientStatus @default(active)
+
+  appointments Appointment[]
+
+  feedback Feedback[]
+
+  doctorId String?
+  doctor   Doctor? @relation(fields: [doctorId], references: [id])
+
+  requests       AmbulanceRequest[]
+  prescriptions  Prescription[]
+  recomendations Recommendation[]
+}
+
+model Doctor {
+  id                 String  @id @unique @default(uuid())
+  firstName          String
+  lastName           String
+  email              String  @unique
+  phone              String
+  gender             String
+  specialization     String
+  licenseNumber      String
+  registrationNumber String
+  password           String?
+  idFront            String?
+  idBack             String?
+  certificate        String?
+  role               Role    @default(doctor)
+
+  appointments   Appointment[]
+  patients       Patient[]
+  prescriptions  Prescription[]
+  recomendations Recommendation[]
+  // feedback Feedback[]
+}
+
+model Appointment {
+  id                String   @id @unique @default(uuid())
+  schedule          DateTime
+  status            Status   @default(scheduled)
+  // primaryPhysician  String
+  patientName       String
+  reason            String
+  createdAt     DateTime      @default(now())
+  // patient Patient[]
+  cancelationReason String?
+
+  patientId String?
+  patient   Patient? @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  doctorId String?
+  doctor   Doctor? @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Ambulance {
+  id            String          @id @unique @default(uuid())
+  name          String
+  licenseNumber String
+  location      Json
+  type          String
+  owner         String
+  status        AmbulanceStatus @default(available)
+
+  requests AmbulanceRequest[]
+}
+
+model AmbulanceRequest {
+  id            String        @id @unique @default(uuid())
+  aidCarType    String
+  selectedItems Json
+  createdAt     DateTime      @default(now())
+  status        RequestStatus @default(pending)
+
+  patientId   String
+  ambulanceId String?
+
+  ambulance Ambulance? @relation(fields: [ambulanceId], references: [id], onDelete: Cascade)
+  patient   Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model Prescription {
+  id           String         @id @unique @default(uuid())
+  doctorId     String
+  patientId    String
+  doctor       Doctor         @relation(fields: [doctorId], references: [id])
+  patient      Patient        @relation(fields: [patientId], references: [id])
+  prescribedAt DateTime       @default(now())
+  type         PRESCRTIONTYPE @default(prescription)
+  content      String         @db.Text
+  // totalAmount  Float
+}
+
+model Recommendation {
+  id             String   @id @unique @default(uuid())
+  doctorId       String
+  patientId      String
+  doctor         Doctor   @relation(fields: [doctorId], references: [id])
+  patient        Patient  @relation(fields: [patientId], references: [id])
+  recommendation String   @db.Text
+  createdAt      DateTime @default(now())
+}
+
+model Message {
+  id         Int    @id @default(autoincrement())
+  content    String
+  senderId   Int
+  receiverId Int
+
+  replyToMessageId Int?
+  replyToMessage   Message?  @relation("Reply", fields: [replyToMessageId], references: [id])
+  replies          Message[] @relation("Reply")
+
+  sender    User1    @relation("SentMessages", fields: [senderId], references: [id])
+  receiver  User1    @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Feedback {
+  id      String @id @unique @default(uuid())
+  content String
+
+  userId String
+  // doctorId String
+  user   Patient @relation(fields: [userId], references: [id])
+  // doctor Doctor @relation(fields: [doctorId],references: [id])
+}
+
+enum Role {
+  doctor
+  patient
+  admin
+}
+
+enum Status {
+  scheduled
+  rescheduled
+  approved
+  canceled
+  completed
+  canceled_by_user
+  canceled_by_admin
+  canceled_by_doctor
+}
+
+enum AmbulanceStatus {
+  available
+  assinged
+  on_route
+  mantainace
+}
+
+enum RequestStatus {
+  pending
+  accepted
+  canceled
+  completed
+  canceled_by_user
+  canceled_by_admin
+}
+
+enum PatientStatus {
+  active
+  scheduled
+  followeup
+}
+
+enum AmbulanceType {
+  Basic
+  Advanced
+  Motuary
+  Patient
+}
+
+enum PRESCRTIONTYPE {
+  recommendation
+  prescription
+}
+
+enum ADMINROLE {
+  super_admin
+  admin
+}
