@@ -53,9 +53,9 @@ pipeline {
     stage('Deploy to Railway') {
       steps {
             sh '''
-            npm install @railway/cli@latest
-            echo $RAILWAY_TOKEN | npx railway login --browserless
-            npx railway up --service doctors-backend --ci
+          npx railway up \
+          --service backend \
+          --apiKey $RAILWAY_TOKEN
        '''
       }
     }
