@@ -55,7 +55,7 @@ pipeline {
             sh '''
            npx @railway/cli up \
           --service backend \
-          --apiKey $RAILWAY_TOKEN
+          -- --apiKey $RAILWAY_TOKEN
        '''
       }
     }
