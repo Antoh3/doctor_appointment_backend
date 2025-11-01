@@ -53,7 +53,7 @@ pipeline {
     stage('Deploy to Railway') {
       steps {
             sh '''
-          npx railway up \
+           npx @railway/cli up \
           --service backend \
           --apiKey $RAILWAY_TOKEN
        '''
