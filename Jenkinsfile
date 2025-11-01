@@ -52,10 +52,10 @@ pipeline {
 
     stage('Deploy to Railway') {
       steps {
-            sh '''
+        sh '''
             echo "Deploying backend to Railway..."
-            RAILWAY_TOKEN=$RAILWAY_TOKEN npx @railway/cli up --ci
-           '''
+            RAILWAY_TOKEN=$RAILWAY_TOKEN npx @railway/cli up --ci --service soothing-truth
+        '''
       }
     }
   }
