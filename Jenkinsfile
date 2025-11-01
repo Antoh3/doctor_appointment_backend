@@ -9,6 +9,7 @@ pipeline {
     ESRI_KEY = credentials('ESRI_KEY')
     PORT = '5001'
     NODE_ENV = 'production'
+    RAILWAY_TOKEN = credentials('RAILWAY_TOKEN')
   }
 
   stages {
@@ -46,6 +47,16 @@ pipeline {
     stage('Start Server') {
       steps {
         sh 'npm start &'
+      }
+    }
+
+    stage('Deploy to Railway') {
+      steps {
+          sh """
+            npm install -g @railway/cli
+            railway login --token $RAILWAY_TOKEN
+            railway up --service doctors-backend --ci
+          """
       }
     }
   }
